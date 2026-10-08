@@ -1,0 +1,235 @@
+{
+	"name": "open-in-browser",
+	"displayName": "open in browser",
+	"description": "This allows you to open the current file in your default browser or application.",
+	"icon": "images/icon.png",
+	"version": "3.1.0",
+	"publisher": "techer",
+	"license": "MIT",
+	"repository": "https://github.com/SudoKillMe/vscode-extensions-open-in-browser",
+	"engines": {
+		"vscode": "^1.57.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"keywords": [
+		"open",
+		"html",
+		"browser"
+	],
+	"activationEvents": [
+		"onCommand:extension.openInDefaultBrowser",
+		"onCommand:extension.openInSpecifyBrowser",
+		"onCommand:extension.openInBrowserServe",
+		"onCommand:extension.stopBrowserServers",
+		"onCommand:extension.manageBrowserServers"
+	],
+	"main": "./out/extension",
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": "limited",
+			"description": "Serve mode is disabled in untrusted workspaces.",
+			"restrictedConfigurations": [
+				"open-in-browser.serve.root",
+				"open-in-browser.serve.port"
+			]
+		}
+	},
+	"contributes": {
+		"commands": [
+			{
+				"command": "extension.openInDefaultBrowser",
+				"title": "Open In Default Browser"
+			},
+			{
+				"command": "extension.openInSpecifyBrowser",
+				"title": "Open In Other Browsers"
+			},
+			{
+				"command": "extension.openInBrowserServe",
+				"title": "Open in Browser - Serve Mode",
+				"enablement": "isWorkspaceTrusted && !remoteName"
+			},
+			{
+				"command": "extension.stopBrowserServers",
+				"title": "Open in Browser - Stop All Local Servers"
+			},
+			{
+				"command": "extension.manageBrowserServers",
+				"title": "Open in Browser - Manage Local Servers"
+			}
+		],
+		"configuration": {
+			"type": "object",
+			"title": "plugin open-in-browser",
+			"properties": {
+				"open-in-browser.serve.port": {
+					"type": "integer",
+					"default": 2222,
+					"minimum": 0,
+					"maximum": 65535,
+					"scope": "resource",
+					"description": "Preferred local serve port. If occupied, a free port is assigned; 0 always selects a free port. Existing servers keep their port until stopped."
+				},
+				"open-in-browser.serve.root": {
+					"type": "string",
+					"default": "${workspaceFolder}",
+					"scope": "resource",
+					"description": "Static server root: ${workspaceFolder} uses the selected file's workspace folder (default); ${fileDirname} uses its directory and also works without a workspace. Both support a subpath, e.g. ${workspaceFolder}/public. Absolute paths are also supported; empty values, bare relative paths and other variables are rejected. All allowed static files under this root are accessible locally, not just the entry. Hidden files, backend scripts and links outside the root are blocked. Stop existing servers before changing roots to revoke old access."
+				},
+				"open-in-browser.customBrowsers": {
+					"type": "array",
+					"default": [],
+					"scope": "machine",
+					"description": "Custom browsers appended to the browser picker. User settings only. Specify displayName and exactly one of name (a built-in alias or OS application/command name) or path (an absolute executable path; macOS .app paths are also supported). Arguments belong in open-in-browser.arguments, not in name or path.",
+					"items": {
+						"type": "object",
+						"additionalProperties": false,
+						"required": [
+							"displayName"
+						],
+						"properties": {
+							"displayName": {
+								"type": "string",
+								"minLength": 1,
+								"pattern": "\\S"
+							},
+							"name": {
+								"type": "string",
+								"minLength": 1,
+								"pattern": "\\S"
+							},
+							"path": {
+								"type": "string",
+								"minLength": 1
+							}
+						},
+						"oneOf": [
+							{
+								"required": [
+									"name"
+								],
+								"not": {
+									"required": [
+										"path"
+									]
+								}
+							},
+							{
+								"required": [
+									"path"
+								],
+								"not": {
+									"required": [
+										"name"
+									]
+								}
+							}
+						]
+					}
+				},
+				"open-in-browser.default": {
+					"type": "string",
+					"default": "",
+					"description": "Set default browser"
+				},
+				"open-in-browser.arguments": {
+					"type": "object",
+					"default": {},
+					"additionalProperties": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						}
+					},
+					"description": "Arguments by browser alias or absolute executable path. Applies only to an explicitly selected browser, not the system default application."
+				}
+			}
+		},
+		"keybindings": [
+			{
+				"command": "extension.openInSpecifyBrowser",
+				"key": "shift+alt+B"
+			},
+			{
+				"command": "extension.openInDefaultBrowser",
+				"key": "Alt+B"
+			}
+		],
+		"menus": {
+			"explorer/context": [
+				{
+					"when": "resourceScheme == file && explorerResourceIsFolder != true && isWorkspaceTrusted && !remoteName",
+					"command": "extension.openInBrowserServe",
+					"group": "open-in-browser"
+				},
+				{
+					"when": "resourceScheme == file && explorerResourceIsFolder != true",
+					"command": "extension.openInDefaultBrowser",
+					"group": "open-in-browser"
+				},
+				{
+					"when": "resourceLangId == html",
+					"command": "extension.openInSpecifyBrowser",
+					"group": "open-in-browser"
+				}
+			],
+			"editor/context": [
+				{
+					"when": "resourceScheme == file && isWorkspaceTrusted && !remoteName",
+					"command": "extension.openInBrowserServe",
+					"group": "open-in-browser"
+				},
+				{
+					"when": "resourceScheme == file && explorerResourceIsFolder != true",
+					"command": "extension.openInDefaultBrowser",
+					"group": "open-in-browser"
+				},
+				{
+					"when": "resourceLangId == html",
+					"command": "extension.openInSpecifyBrowser",
+					"group": "open-in-browser"
+				}
+			],
+			"editor/title/context": [
+				{
+					"when": "resourceScheme == file && isWorkspaceTrusted && !remoteName",
+					"command": "extension.openInBrowserServe",
+					"group": "open-in-browser"
+				},
+				{
+					"when": "resourceScheme == file && explorerResourceIsFolder != true",
+					"command": "extension.openInDefaultBrowser",
+					"group": "open-in-browser"
+				},
+				{
+					"when": "resourceLangId == html",
+					"command": "extension.openInSpecifyBrowser",
+					"group": "open-in-browser"
+				}
+			]
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"test": "npm run compile && node test/run.js",
+		"watch": "tsc -watch -p ./"
+	},
+	"devDependencies": {
+		"@types/mocha": "^2.2.42",
+		"@types/node": "14.18.63",
+		"@types/vscode": "1.57.0",
+		"tslint": "^5.8.0",
+		"typescript": "4.3.5"
+	},
+	"dependencies": {
+		"opn": "^5.3.0"
+	},
+	"__metadata": {
+		"installedTimestamp": 1791372083870,
+		"targetPlatform": "undefined",
+		"size": 251705
+	}
+}
